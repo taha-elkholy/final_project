@@ -23,6 +23,7 @@ class JobsList extends StatelessWidget {
               // sho apply bottom sheet
               showModalBottomSheet<void>(
                 clipBehavior: Clip.antiAliasWithSaveLayer,
+                isScrollControlled: true,
                 backgroundColor: Colors.transparent,
                 context: context,
                 enableDrag: true,

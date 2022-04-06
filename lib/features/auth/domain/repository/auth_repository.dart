@@ -1,15 +1,16 @@
 import 'package:dartz/dartz.dart';
-import 'package:final_project/core/error/failure.dart';
-import 'package:final_project/features/auth/domain/entities/login.dart';
-import 'package:final_project/features/auth/domain/entities/register.dart';
+import 'package:final_project/core/failure/failure.dart';
+import 'package:final_project/features/auth/domain/entities/login_param.dart';
+import 'package:final_project/features/auth/domain/entities/register_param.dart';
 import 'package:final_project/features/auth/domain/entities/user.dart';
 
 abstract class AuthRepository {
-  Future<Either<Failure, User>> register(Register data);
+  Future<Either<Failure, User>> login({required LoginParam loginParam});
 
-  Future<Either<Failure, User>> login(Login data);
+  Future<Either<Failure, User>> register(
+      {required RegisterParam registerParam});
 
-  Future<bool> saveToken({required String token});
+  Future<Either<Failure, String>> logout();
 
-  Future<bool> saveUserId({required int userId});
+  Future<Either<Failure, String>> getToken();
 }

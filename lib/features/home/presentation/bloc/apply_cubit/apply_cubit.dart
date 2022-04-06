@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:final_project/features/home/domain/entities/apply_sent_entity.dart';
 import 'package:final_project/features/home/domain/use_case/apply_use_case.dart';
 import 'package:final_project/features/home/presentation/bloc/apply_cubit/apply_states.dart';
 import 'package:flutter/foundation.dart';
@@ -12,15 +15,23 @@ class ApplyCubit extends Cubit<ApplyStates> {
 
   Future<void> apply({
     required int jobId,
+    required int currentSalary,
+    required int expectedSalary,
+    required File cv,
   }) async {
     emit(const ApplyLoadingState());
-    final result = await _applyUseCase.call(jobId);
+    final _data = ApplySentEntity(
+        jobId: jobId,
+        currentSalary: currentSalary,
+        expectedSalary: expectedSalary,
+        cv: cv);
+    final result = await _applyUseCase.call(_data);
 
     emit(result.fold((error) {
       if (kDebugMode) {
-        print(error.type);
+        print(error.message);
       }
-      return ApplyErrorState(error: error.type);
+      return ApplyErrorState(error: error.message);
     }, (done) {
       return const ApplyLoadedState();
     }));

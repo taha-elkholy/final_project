@@ -33,35 +33,36 @@ class _JobsService implements JobsService {
   }
 
   @override
-  Future<String> logout({required token}) async {
+  Future<List<String>> applyForJob(
+      {required token,
+      required userId,
+      required jobId,
+      required currentSalary,
+      required expectedSalary,
+      required cv}) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'Authorization': token};
-    _headers.removeWhere((k, v) => v == null);
-    final _data = <String, dynamic>{};
-    final _result = await _dio.fetch<String>(_setStreamType<String>(
-        Options(method: 'POST', headers: _headers, extra: _extra)
-            .compose(_dio.options, 'logout',
-                queryParameters: queryParameters, data: _data)
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = _result.data!;
-    return value;
-  }
-
-  @override
-  Future<String> applyForJob({required token, required applySentData}) async {
-    const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'Authorization': token};
-    _headers.removeWhere((k, v) => v == null);
-    final _data = <String, dynamic>{};
-    _data.addAll(applySentData.toJson());
-    final _result = await _dio.fetch<String>(_setStreamType<String>(
-        Options(method: 'POST', headers: _headers, extra: _extra)
+    final _headers = <String, dynamic>{};
+    final _data = FormData();
+    _data.fields.add(MapEntry('Authorization', token));
+    _data.fields.add(MapEntry('user_id', userId.toString()));
+    _data.fields.add(MapEntry('job_id', jobId.toString()));
+    _data.fields.add(MapEntry('current_salary', currentSalary.toString()));
+    _data.fields.add(MapEntry('expected_salary', expectedSalary.toString()));
+    _data.files.add(MapEntry(
+        'cv',
+        MultipartFile.fromFileSync(cv.path,
+            filename: cv.path.split(Platform.pathSeparator).last)));
+    final _result = await _dio.fetch<List<dynamic>>(
+        _setStreamType<List<String>>(Options(
+                method: 'POST',
+                headers: _headers,
+                extra: _extra,
+                contentType: 'multipart/form-data')
             .compose(_dio.options, 'appliedJob',
                 queryParameters: queryParameters, data: _data)
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = _result.data!;
+    final value = _result.data!.cast<String>();
     return value;
   }
 

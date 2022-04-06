@@ -1,135 +1,85 @@
 import 'package:dartz/dartz.dart';
-import 'package:final_project/core/const/strings.dart';
-import 'package:final_project/core/error/failure.dart';
-import 'package:final_project/features/home/data/models/apply/apply_sent_data.dart';
-import 'package:final_project/features/home/data/models/jobs/jobs_model.dart';
+import 'package:final_project/core/failure/failure.dart';
+import 'package:final_project/features/auth/data/data_source/local/auth_local_service.dart';
+import 'package:final_project/features/home/data/mappers/jobs_mapper.dart';
 import 'package:final_project/features/home/data/services/remote/jobs_service.dart';
+import 'package:final_project/features/home/domain/entities/apply_sent_entity.dart';
 import 'package:final_project/features/home/domain/entities/job.dart';
 import 'package:final_project/features/home/domain/repository/jobs_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 @Injectable(as: JobsRepository)
 class JobsRepositoryImpl extends JobsRepository {
   final JobsService service;
+  final AuthLocalService localAuthService;
 
-  JobsRepositoryImpl(this.service);
+  JobsRepositoryImpl(this.service, this.localAuthService);
 
   @override
   Future<Either<Failure, List<Job>>> getJobs() async {
-    final _token = await getToken();
+    final _token = localAuthService.getToken();
     try {
-      if (kDebugMode) {
-        print('Get Jobs start...');
-      }
+      debugPrint('Get Jobs start...');
+
       if (_token != null && _token.isNotEmpty) {
         final jobsModel = await service.getJobs(token: 'Bearer $_token');
-        if (kDebugMode) {
-          print('Get Job user model $jobsModel');
+
+        debugPrint('Get Job user model $jobsModel');
+
+        List<Job> jobs = [];
+        if (jobsModel.data != null) {
+          for (var element in jobsModel.data!) {
+            jobs.add(element.fromModel);
+          }
         }
-        return right(_jobMapper(jobsModel));
+        debugPrint('jobs Length${jobs.length}');
+        return right((jobs));
       } else {
-        return left(const Failure('No Token'));
+        return left(const Failure(message: 'No Token'));
       }
     } catch (error) {
-      if (kDebugMode) {
-        print('Get Job error $error');
-      }
-      return left(Failure(error.toString()));
+      debugPrint('Get Job failure $error');
+
+      return left(Failure(message: error.toString()));
     }
   }
 
-  List<Job> _jobMapper(JobsModel model) {
-    List<Job> jobs = [];
-    if (model.data != null) {
-      for (var element in model.data!) {
-        Job job = Job(
-            id: element.id,
-            name: element.jobName ?? 'No Name',
-            description: element.description ?? 'No Description',
-            publishedDate: element.publishedDate ?? 'No Date');
-        jobs.add(job);
-      }
-    }
-
-    return jobs;
-  }
-
   @override
-  Future<String?> getToken() async {
-    final pref = await SharedPreferences.getInstance();
-    return pref.getString(tokenKey);
-  }
-
-  @override
-  Future<Either<Failure, bool>> apply({required int jobId}) async {
-    final _token = await getToken();
-    final _uId = await getUserId();
+  Future<Either<Failure, bool>> apply(
+      {required ApplySentEntity applySentEntity}) async {
+    final _token = localAuthService.getToken();
+    final _uId = localAuthService.getUserId();
 
     try {
-      if (kDebugMode) {
-        print('Apply start...$_token');
-      }
+      debugPrint('Apply start...$_token');
+
       if (_token != null && _uId != null) {
-        final data = ApplySentData(jobId: jobId, userId: _uId);
-        await service.applyForJob(
+        final applyRes = await service.applyForJob(
           token: 'Bearer $_token',
-          applySentData: data,
+          jobId: applySentEntity.jobId,
+          userId: _uId,
+          currentSalary: applySentEntity.currentSalary,
+          expectedSalary: applySentEntity.expectedSalary,
+          cv: applySentEntity.cv,
         );
-        return right(true);
-      } else {
-        return left(const Failure('No Token'));
-      }
-    } catch (error) {
-      if (kDebugMode) {
-        print('Apply error $error');
-      }
-      return left(Failure(error.toString()));
-    }
-  }
 
-  @override
-  Future<Either<Failure, bool>> logout() async {
-    final _token = await getToken();
-    try {
-      if (kDebugMode) {
-        print('Logout start...$_token');
-      }
-      if (_token != null && _token.isNotEmpty) {
-        final logout = await service.logout(token: 'Bearer $_token');
-        if (kDebugMode) {
-          print(logout);
+        debugPrint('Apply Result: $applyRes');
+
+        if (applyRes.first == 'You have applied successfully') {
+          return right(true);
+        } else {
+          debugPrint('Apply Result: $applyRes');
+
+          return left(const Failure(message: 'apply response failure'));
         }
-        removeToken();
-        removeUserId();
-        return right(true);
       } else {
-        return left(const Failure('No Token'));
+        return left(const Failure(message: 'No Token'));
       }
     } catch (error) {
-      if (kDebugMode) {
-        print('Logout  error $error');
-      }
-      return left(Failure(error.toString()));
+      debugPrint('Apply failure $error');
+
+      return left(Failure(message: error.toString()));
     }
-  }
-
-  @override
-  Future<bool> removeToken() async {
-    final pref = await SharedPreferences.getInstance();
-    return await pref.remove(tokenKey);
-  }
-
-  @override
-  Future<bool> removeUserId() async {
-    final pref = await SharedPreferences.getInstance();
-    return await pref.remove(userIdKey);
-  }
-
-  @override
-  Future<int?> getUserId() async {
-    final pref = await SharedPreferences.getInstance();
-    return pref.getInt(userIdKey);
   }
 }

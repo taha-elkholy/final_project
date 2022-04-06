@@ -1,15 +1,18 @@
-import 'package:final_project/core/const/style.dart';
-import 'package:final_project/core/di/injector/injector.dart';
-import 'package:final_project/features/home/presentation/bloc/home_cubit/home_cubit.dart';
-import 'package:final_project/features/startup/presentation/bloc/startup_cubit.dart';
-import 'package:final_project/features/startup/presentation/pages/startup_screen.dart';
+import 'package:final_project/core/style/style.dart';
+import 'package:final_project/core/utilities/my_bloc_observer.dart';
+import 'package:final_project/di/injector/injector.dart';
+import 'package:final_project/features/auth/presentation/bloc/auth_cubit/auth_cubit.dart';
+import 'package:final_project/features/auth/presentation/pages/startup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
-  runApp(const MyApp());
+  BlocOverrides.runZoned(
+    () => runApp(const MyApp()),
+    blocObserver: MyBlocObserver(),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -17,15 +20,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => getIt<StartupCubit>()..goToHomePAge(),
-        ),
-        BlocProvider(create: (context) => getIt<HomeCubit>()..getJobs()),
-      ],
+    return BlocProvider(
+      create: (context) => getIt<AuthCubit>()..getHomeScreen(),
       child: MaterialApp(
-        theme: appTheme,
+        theme: appThemeLight,
         debugShowCheckedModeBanner: false,
         home: const StartupScreen(),
       ),

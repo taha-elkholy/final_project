@@ -1,4 +1,4 @@
-import 'package:final_project/core/helpers/helpers.dart';
+import 'package:final_project/core/utilities/helpers.dart';
 import 'package:final_project/features/home/domain/entities/job.dart';
 import 'package:flutter/material.dart';
 

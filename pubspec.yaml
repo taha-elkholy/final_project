@@ -45,6 +45,7 @@ dependencies:
   injectable: ^1.5.3
   #flutter_native_splash: for using native startup screen
   flutter_native_splash: ^2.1.1
+  file_picker: ^4.5.1
 
 dev_dependencies:
   flutter_test:

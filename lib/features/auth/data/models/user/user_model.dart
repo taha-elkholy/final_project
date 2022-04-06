@@ -1,29 +1,48 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'user_model.freezed.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'user_model.g.dart';
 
-@freezed
-class UserModel with _$UserModel {
-  factory UserModel({
-    @JsonKey(name: 'user') required UserModelData user,
-    @JsonKey(name: 'token') required String token,
-  }) = _UserModel;
+@JsonSerializable()
+class UserModel {
+  @JsonKey(name: 'user')
+  UserModelData user;
+  @JsonKey(name: 'token')
+  String token;
+
+  UserModel({
+    required this.user,
+    required this.token,
+  });
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
       _$UserModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserModelToJson(this);
 }
 
-@freezed
-class UserModelData with _$UserModelData {
-  factory UserModelData({
-    @JsonKey(name: 'name') required String name,
-    @JsonKey(name: 'email') required String email,
-    @JsonKey(name: 'updated_at') required String updatedAt,
-    @JsonKey(name: 'created_at') required String createdAt,
-    @JsonKey(name: 'id') required int id,
-  }) = _UserModelData;
+@JsonSerializable()
+class UserModelData {
+  @JsonKey(name: 'id')
+  int id;
+  @JsonKey(name: 'name')
+  String name;
+  @JsonKey(name: 'email')
+  String email;
+  @JsonKey(name: 'updated_at')
+  String updatedAt;
+  @JsonKey(name: 'created_at')
+  String createdAt;
 
-  factory UserModelData.fromJson(Map<String, dynamic> json) => _$UserModelDataFromJson(json);
+  UserModelData({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.updatedAt,
+    required this.createdAt,
+  });
+
+  factory UserModelData.fromJson(Map<String, dynamic> json) =>
+      _$UserModelDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserModelDataToJson(this);
 }

@@ -1,4 +1,4 @@
-import 'package:final_project/core/app_case/app_use_cases.dart';
+import 'package:final_project/core/app_use_case/app_use_case.dart';
 import 'package:final_project/features/home/domain/entities/job.dart';
 import 'package:final_project/features/home/domain/use_case/jobs_use_case.dart';
 import 'package:final_project/features/home/presentation/bloc/home_cubit/home_states.dart';
@@ -20,9 +20,9 @@ class HomeCubit extends Cubit<HomeStates> {
     final result = await _jobsUseCase(NoParams());
     emit(result.fold((error) {
       if (kDebugMode) {
-        print(error.type);
+        print(error.message);
       }
-      return HomeErrorState(error: error.type);
+      return HomeErrorState(error: error.message);
     }, (jobsList) {
       jobs = jobsList;
       return HomeLoadedState(jobs: jobs);
